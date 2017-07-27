@@ -1,72 +1,105 @@
 import sys
-from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-import AquaSys
+from PyQt4.QtCore import *
+import AquaDB
 
 
 class MainWindow(QMainWindow):
-
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
 
-        self.setGeometry(100, 100, 500, 300)
-        self.setFixedSize(500, 300)
+        # self.setGeometry(0, 0, 500, 300)
+        # self.setFixedSize(500, 300)
+
+        # stacked widget nad 3 menus behaviour here
+        self.central_widget = QStackedWidget()
+        self.setCentralWidget(self.central_widget)
 
         self.start_home_menu()
 
-    def app_start(self):
-        if __name__ == '__main__':
-            app = QApplication(sys.argv)
-            w = MainWindow()
-            sys.exit(app.exec_())
-
     def start_home_menu(self):
-        self.home_menu_widget = HomeWidget(self)
+        self.home_widget = HomeWidget()
 
-        self.home_menu_widget.add_menu_button.clicked.connect(self.start_add_menu)
-        self.home_menu_widget.search_menu_button.clicked.connect(self.start_search_menu)
-        self.home_menu_widget.quit_button.clicked.connect(self.quit_app)
+        self.central_widget.addWidget(self.home_widget)
+        self.central_widget.setCurrentWidget(self.home_widget)
 
-        self.setCentralWidget(self.home_menu_widget)
+        self.home_widget.add_button.clicked.connect(self.start_add_menu)
+        self.home_widget.search_button.clicked.connect(self.start_search_menu)
+        self.home_widget.quit_button.clicked.connect(self.quit_application)
 
-        # self.show()
+        self.show()
 
     def start_add_menu(self):
-        self.add_menu_widget = AddWidget(self)
+        self.add_widget = AddWidget()
 
-        self.add_menu_widget.back_to_home_button.clicked.connect(self.start_home_menu)
+        self.central_widget.addWidget(self.add_widget)
+        self.central_widget.setCurrentWidget(self.add_widget)
 
-        # self.add_menu_widget.accept_button.clicked.connect()
+        self.add_widget.photo_button.clicked.connect(self.change_photo_path_label)
+        self.add_widget.see_photo_button.clicked.connect(self.show_photo)
 
+        self.add_widget.birthday_calendar.clicked.connect(
+            lambda: self.change_date_to_label(self.add_widget.birthday_label)
+        )
+        self.add_widget.start_date_calendar.clicked.connect(
+            lambda: self.change_date_to_label(self.add_widget.start_date_label)
+        )
 
+        self.add_widget.accept_button.clicked.connect(self.validate_new_student)
+        self.add_widget.back_to_home_menu_button.clicked.connect(self.start_home_menu)
 
-        self.setCentralWidget(self.add_menu_widget)
+    def change_date_to_label(self, label):
+        label.setText(self.add_widget.birthday_calendar.selectedDate().toString())
 
-        # self.show()
+    def change_photo_path_label(self):
+        self.add_widget.photo_path_lineedit.setText(QFileDialog.getOpenFileName(self, 'Open file',
+                                                    'c:\\', "Image files (*.jpg *.gif)"))
+    
+    def show_photo(self):
+        popup = QDialog()
+        popup.setWindowTitle("Ver foto")
+        popup.setStandardButtons(QMessageBox.Ok)
 
-    def validate_new_student(self, add_menu_widget):
-        self.new_student = AquaSys.Student()
-        self.new_student.complete_name = self.add_menu_widget.complete_name_lineedit.text()
-        self.new_student.phone = self.add_menu_widget.phone_spinbox.value()
-        print(self.new_student)
+        self.add_widget.photo_path_lineedit
+
+    def validate_new_student(self):
+
+        a = self.add_widget
+
+        new_student_form = [
+            a.complete_name_lineedit.text(),
+            a.birthday_label.text(),
+            a.start_date_label.text(),
+            a.photo_path,
+            a.phone_lineedit.text(),
+            a.address_lineedit.text(),
+            a.dni_lineedit.text(),
+            a.email_lineedit.text(),
+            a.social_plan_lineedit.text(),
+            a.afiliate_number_lineedit.text(),
+            a.complete_name_father_lineedit.text(),
+            a.fathers_phone_lineedit.text(),
+            a.complete_name_mother_lineedit.text(),
+            a.mothers_phone_lineedit.text(),
+            a.observations_textedit.toPlainText()
+        ]
+
+        AquaDB.insert_new_data(new_student_form)
+        AquaDB.select_from_db()
 
     def start_search_menu(self):
-        self.start_menu_widget = SearchWidget(self)
+        # self.search_widget = SearchWidget()
+        pass
 
-        self.start_menu_widget.back_to_home_button.clicked.connect(self.start_home_menu)
-
-        self.setCentralWidget(self.start_menu_widget)
-
-        # self.show()
-
-    def quit_app(self):
+    def quit_application(self):
         print("clicked quit")
         choice = QMessageBox.question(self, 'Confirmar',
-                                            "Realmente quiere salir?",
-                                            QMessageBox.Yes | QMessageBox.No)
+                                      "Realmente quiere salir?",
+                                      QMessageBox.Yes | QMessageBox.No)
         if choice == QMessageBox.Yes:
             # log this
             print("pressed yes...\nnow exiting")
+            AquaDB.finish_session()
             sys.exit()
         else:
             print("pressed no...")
@@ -75,75 +108,147 @@ class MainWindow(QMainWindow):
     def closeEvent(self, close_event):
         # override when close window is attempted
         print("clicked close window button")
-        if self.quit_app():
+        if self.quit_application():
             close_event.ignore()
 
 
 class HomeWidget(QWidget):
-
     def __init__(self, parent=None):
         super(HomeWidget, self).__init__(parent)
 
-        self.setWindowTitle("AquaDB System - Inicio")
-        layout = QVBoxLayout()
-
-        self.add_menu_button = QPushButton("Agregar nuevo alumno")
-        self.search_menu_button = QPushButton("Buscar alumno")
+        self.add_button = QPushButton("Agregar nuevo alumno")
+        self.search_button = QPushButton("Buscar alumno")
         self.quit_button = QPushButton("Salir")
 
-        self.add_menu_button.setGeometry(50, 50, 200, 50)
-        self.search_menu_button.setGeometry(50, 150, 125, 50)
-        self.quit_button.setGeometry(375, 225, 100, 50)
+        layout = QGridLayout()
 
-        # self.add_menu_button.setAligment(Qt.AlignRight)
-        # self.search_menu_button.setAligment(Qt.AlignRight)
-        # self.quit_button.setAligment(Qt.AlignRight)
+        layout.addWidget(self.add_button, 1, 1)
+        layout.addWidget(self.search_button, 2, 1)
+        layout.addWidget(self.quit_button, 3, 2)
 
-        layout.addWidget(self.add_menu_button)
-        layout.addWidget(self.search_menu_button)
-        layout.addWidget(self.quit_button)
+        self.setLayout(layout)
+        self.setWindowTitle("AquaDB System - Inicio")
+
+        # self.show()
 
 
 class AddWidget(QWidget):
-
     def __init__(self, parent=None):
         super(AddWidget, self).__init__(parent)
 
-        self.setWindowTitle("AquaDB System - Agregar nuevo alumno")
-        layout = QLayout
+        self.complete_name_lineedit = QLineEdit()
+        self.birthday_calendar = QCalendarWidget()
+        self.birthday_label = QLabel()
+        self.start_date_calendar = QCalendarWidget()
+        self.start_date_label = QLabel()
 
-        self.back_to_home_button = QPushButton("Volver", self)
-        self.accept_button = QPushButton("Aceptar", self)
-        self.complete_name_lineedit = QLineEdit("hola")
-        self.phone_spinbox = QSpinBox()
+        self.photo_button = QPushButton("Seleccionar foto")
+        self.photo_path_lineedit = QLabel()
+        self.see_photo_button = QPushButton("Ver foto")
 
-        self.back_to_home_button.setGeometry(375, 225, 100, 50)
-        self.accept_button.setGeometry(50, 225, 100, 50)
-        self.complete_name_lineedit.setGeometry(50, 120, 100, 50)
-        self.phone_spinbox.setGeometry(50, 20, 100, 50)
+        self.phone_lineedit = QLineEdit()
+        self.phone_lineedit.setValidator(QIntValidator())
 
-        layout.addWidget(self.back_to_home_button)
+        self.address_lineedit = QLineEdit()
+
+        self.dni_lineedit = QLineEdit()
+        self.dni_lineedit.setValidator(QIntValidator())
+
+        self.email_lineedit = QLineEdit()
+
+        self.social_plan_lineedit = QLineEdit()
+        self.afiliate_number_lineedit = QLineEdit()
+        self.afiliate_number_lineedit.setValidator(QIntValidator())
+
+        self.observations_textedit = QTextEdit()
+
+        self.complete_name_father_lineedit = QLineEdit()
+        self.fathers_phone_lineedit = QLineEdit()
+        self.fathers_phone_lineedit.setValidator(QIntValidator())
+        self.complete_name_mother_lineedit = QLineEdit()
+        self.mothers_phone_lineedit = QLineEdit()
+        self.mothers_phone_lineedit.setValidator(QIntValidator())
+
+        self.accept_button = QPushButton("Aceptar")
+        self.back_to_home_menu_button = QPushButton("Volver")
+
+        layout = QVBoxLayout()
+
+        name_and_photo_layout = QHBoxLayout()
+        calendars_layout = QHBoxLayout()
+        calendar_1_layout = QVBoxLayout()
+        calendar_2_layout = QVBoxLayout()
+        phone_and_address_layout = QHBoxLayout()
+        dni_and_email_layout = QHBoxLayout()
+        social_plan_layout = QHBoxLayout()
+        father_layout = QHBoxLayout()
+        mother_layout = QHBoxLayout()
+        observation_layout = QVBoxLayout()
+        buttons_layout = QHBoxLayout()
+
+        calendars_layout.addLayout(calendar_1_layout, 0)
+        calendars_layout.addLayout(calendar_2_layout, 1)
+
+        layout.addLayout(name_and_photo_layout, 0)
+        layout.addLayout(calendars_layout, 1)
+        layout.addLayout(phone_and_address_layout, 2)
+        layout.addLayout(dni_and_email_layout, 3)
+        layout.addLayout(social_plan_layout, 4)
+        layout.addLayout(father_layout, 5)
+        layout.addLayout(mother_layout, 6)
+        layout.addLayout(observation_layout, 7)
+        layout.addLayout(buttons_layout, 8)
+
+        name_and_photo_layout.addWidget(QLabel("Nombre completo:"))
+        name_and_photo_layout.addWidget(self.complete_name_lineedit)
+        name_and_photo_layout.addWidget(self.photo_button)
+        name_and_photo_layout.addWidget(self.photo_path_lineedit)
+
+        calendar_1_layout.addWidget(QLabel("Fecha de nacimiento:"))
+        calendar_1_layout.addWidget(self.birthday_calendar)
+        calendar_1_layout.addWidget(self.birthday_label)
+
+        calendar_2_layout.addWidget(QLabel("Fecha de inicio:"))
+        calendar_2_layout.addWidget(self.start_date_calendar)
+        calendar_2_layout.addWidget(self.start_date_label)
+
+        phone_and_address_layout.addWidget(QLabel("Telefono"))
+        phone_and_address_layout.addWidget(self.phone_lineedit)
+        phone_and_address_layout.addWidget(QLabel("Domicilio"))
+        phone_and_address_layout.addWidget(self.address_lineedit)
+
+        dni_and_email_layout.addWidget(QLabel("DNI:"))
+        dni_and_email_layout.addWidget(self.dni_lineedit)
+        dni_and_email_layout.addWidget(QLabel("e-mail:"))
+        dni_and_email_layout.addWidget(self.email_lineedit)
+
+        social_plan_layout.addWidget(QLabel("Obra social:"))
+        social_plan_layout.addWidget(self.social_plan_lineedit)
+        social_plan_layout.addWidget(QLabel("Numero de afiliado:"))
+        social_plan_layout.addWidget(self.afiliate_number_lineedit)
+
+        father_layout.addWidget(QLabel("Nombre del padre:"))
+        father_layout.addWidget(self.complete_name_father_lineedit)
+        father_layout.addWidget(QLabel("Numero (padre):"))
+        father_layout.addWidget(self.fathers_phone_lineedit)
+
+        mother_layout.addWidget(QLabel("Nombre de la madre:"))
+        mother_layout.addWidget(self.complete_name_mother_lineedit)
+        mother_layout.addWidget(QLabel("Numero (madre):"))
+        mother_layout.addWidget(self.mothers_phone_lineedit)
+
+        observation_layout.addWidget(QLabel("Observaciones"))
+        observation_layout.addWidget(self.observations_textedit)
+
+        buttons_layout.addWidget(self.accept_button)
+        buttons_layout.addWidget(self.back_to_home_menu_button)
 
         self.setLayout(layout)
-
-
-
-
-
-class SearchWidget(QWidget):
-
-    def __init__(self, parent=None):
-        super(SearchWidget, self).__init__(parent)
-
-        self.setWindowTitle("AquaDB System - Buscar alumno")
-
-        self.back_to_home_button = QPushButton("Volver", self)
-        # add other stuff
-
-        self.back_to_home_button.setGeometry(375, 225, 100, 50)
+        self.setWindowTitle("AquaDB System - Agregar un nuevo alumno")
 
 
 if __name__ == '__main__':
+    AquaDB.create_table()
     app = QApplication(sys.argv)
     w = MainWindow()
     sys.exit(app.exec_())

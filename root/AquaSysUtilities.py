@@ -1,0 +1,2 @@
+def toLog(str):
+    pass
