@@ -1,7 +1,8 @@
 import sys
+
 from PyQt4.QtGui import *
-from PyQt4.QtCore import *
-import AquaDB
+
+from version2 import AquaDB
 
 
 class MainWindow(QMainWindow):
@@ -115,6 +116,7 @@ class MainWindow(QMainWindow):
 class HomeWidget(QWidget):
     def __init__(self, parent=None):
         super(HomeWidget, self).__init__(parent)
+        self.setFixedSize(300, 100)
 
         self.add_button = QPushButton("Agregar nuevo alumno")
         self.search_button = QPushButton("Buscar alumno")
@@ -135,6 +137,7 @@ class HomeWidget(QWidget):
 class AddWidget(QWidget):
     def __init__(self, parent=None):
         super(AddWidget, self).__init__(parent)
+        self.setFixedSize(1000, 600)
 
         self.complete_name_lineedit = QLineEdit()
         self.birthday_calendar = QCalendarWidget()
