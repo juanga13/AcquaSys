@@ -1,11 +1,15 @@
 from PyQt4.QtGui import *
-from betaverison2 import Database
+from PyQt4.QtCore import QSize
+from betaversion2 import Database
 
 
 class ListWidget(QWidget):
 
     def __init__(self, parent=None):
         super(ListWidget, self).__init__(parent)
+
+        self.setWindowTitle("AquaDB System - Lista de alumnos")
+        self.setFixedSize(self.size())
 
         # initialize database
         db = Database.DatabaseController()
@@ -17,14 +21,23 @@ class ListWidget(QWidget):
         search_and_add_layout = QHBoxLayout()
         list_layout.addLayout(search_and_add_layout)
 
+        # background
+        oImage = QImage("background.png")
+        sImage = oImage.scaled(QSize(300, 200))  # resize Image to widgets size
+        palette = QPalette()
+        palette.setBrush(10, QBrush(sImage))  # 10 = Windowrole
+        self.setPalette(palette)
+
         # components
         self.search_edit = QLineEdit()
         search_and_add_layout.addWidget(self.search_edit)
+        self.search_button = QPushButton()
         self.add_button = QPushButton("Agregar nuevo alumno")
         search_and_add_layout.addWidget(self.add_button)
-        scroll_area = QScrollArea()
+        self.quit_button = QPushButton("Salir")
 
         # scroll area thing
+        scroll_area = QScrollArea()
         scroll_area_widget = QWidget()
         scroll_area.setWidget(scroll_area_widget)
         self.scroll_area_layout = QVBoxLayout()
@@ -37,8 +50,6 @@ class ListWidget(QWidget):
 
         self.list_list_layout = QHBoxLayout()
         self.update_list()
-
-        self.quit_button = QPushButton("Salir")
 
         list_layout.addWidget(self.quit_button)
 
@@ -67,6 +78,9 @@ class AddWidget(QWidget):
 
     def __init__(self, parent=None):
         super(AddWidget, self).__init__(parent)
+
+        self.setWindowTitle("AquaDB System - Agregar nuevo alumno")
+        self.setFixedSize(self.size())
 
         # main layout
         add_layout = QVBoxLayout()

@@ -3,7 +3,7 @@ import sys
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
-from betaverison2 import Widgets, Database
+from betaversion2 import Widgets, Database
 
 
 class MainWindow(QMainWindow):
@@ -12,45 +12,38 @@ class MainWindow(QMainWindow):
         print("[Gui] Initializing gui.")
         super(MainWindow, self).__init__(parent)
 
-        # stacked widget management of menus
-        self.central_widget = QStackedWidget()
-        self.setCentralWidget(self.central_widget)
+        self.title = "Title"
+        self.setWindowTitle(self.title)
 
         # initialize database
         self.db = Database.DatabaseController()
-
-        # initialize menus
-        self.list_menu = Widgets.ListWidget()
-        self.central_widget.addWidget(self.list_menu)
-        self.add_menu = Widgets.AddWidget()
-        self.central_widget.addWidget(self.add_menu)
-
-        self.central_widget.setCurrentWidget(self.list_menu)
 
         # start app method
         self.start_list_menu()
 
     def start_list_menu(self):
         print("[Gui] Starting list menu.")
-        self.list_menu.update_list()
-        self.central_widget.setCurrentWidget(self.list_menu)
+        list_menu = Widgets.ListWidget()
 
-        self.list_menu.setWindowTitle("AquaDB System - Lista de alumnos")
-        self.list_menu.setFixedSize(300, 200)
+        self.title = "AquaDB System - Lista de alumnos"
+
+        list_menu.update_list()
+
+        self.setCentralWidget(list_menu)
+
+        list_menu.setFixedSize(300, 200)
 
         # component actions
-        self.list_menu.search_edit.textChanged.connect(self.list_menu.update_list)
-        self.list_menu.add_button.clicked.connect(self.start_add_menu)
+        list_menu.search_edit.textChanged.connect(list_menu.update_list)
+        list_menu.add_button.clicked.connect(self.start_add_menu)
 
-        print("xd" + str(self.list_menu.name_list))
-
-        for i in range(0, len(self.list_menu.see_button_list)):
-            self.list_menu.see_button_list[i].clicked.connect(
-                lambda: self.show_student_data(str(self.list_menu.name_list[i])))
-        for i in range(0, len(self.list_menu.delete_button_list)):
-            self.list_menu.delete_button_list[i].clicked.connect(
-                lambda: self.show_student_data(str(str(self.list_menu.name_list[i]))))
-        self.list_menu.quit_button.clicked.connect(self.quit_app)
+        for i in range(0, len(list_menu.see_button_list)):
+            list_menu.see_button_list[i].clicked.connect(
+                lambda: self.show_student_data(str(list_menu.name_list[i])))
+        for i in range(0, len(list_menu.delete_button_list)):
+            list_menu.delete_button_list[i].clicked.connect(
+                lambda: self.show_student_data(str(list_menu.name_list[i])))
+        list_menu.quit_button.clicked.connect(self.quit_app)
 
         self.show()
 
@@ -151,7 +144,6 @@ class MainWindow(QMainWindow):
 
         father_mother_widget = QWidget()
         father_mother_layout = QVBoxLayout()
-        father_mother_box = QGroupBox(father_mother_widget)
         father_mother_widget.setLayout(father_mother_layout)
         father_layout = QHBoxLayout()
         mother_layout = QHBoxLayout()
@@ -185,10 +177,9 @@ class MainWindow(QMainWindow):
 
     def start_add_menu(self):
         print("[Gui] Starting add menu.")
-        self.central_widget.setCurrentWidget(self.add_menu)
+        self.add_menu = Widgets.AddWidget()
 
-        self.add_menu.setWindowTitle("AquaDB System - Agregar nuevo alumno")
-        self.add_menu.setFixedSize(900, 600)
+        self.setCentralWidget(self.add_menu)
 
         # component actions
         self.add_menu.photo_select_button.clicked.connect(self.select_student_photo)

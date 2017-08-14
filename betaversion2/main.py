@@ -1,4 +1,4 @@
-from betaverison2.Controller import *
+from betaversion2.Controller import *
 import sys
 
 
