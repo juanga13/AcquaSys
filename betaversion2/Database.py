@@ -68,7 +68,7 @@ class DatabaseController:
         if len(selection) is not 0:
             for i in range(0, len(selection)):
                 name_list.append(selection[i][0])
-        print("[Database] returning all students names in a list:\n"
+        print("[Database] Returning all students names in a list:\n"
               "[Database]" + str(name_list))
         return name_list
 

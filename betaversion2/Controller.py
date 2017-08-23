@@ -25,8 +25,6 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("AquaDB System - Lista de alumnos")
         self.setFixedSize(400, 200)
 
-        list_menu.update_list()
-
         self.setCentralWidget(list_menu)
 
         # component actions
@@ -40,7 +38,7 @@ class MainWindow(QMainWindow):
                 lambda: self.show_student_data(str(list_menu.name_list[i])))
         for i in range(0, len(list_menu.delete_button_list)):
             list_menu.delete_button_list[i].clicked.connect(
-                lambda: self.show_student_data(str(list_menu.name_list[i])))
+                lambda: self.delete_student_data(str(list_menu.name_list[i])))
         list_menu.quit_button.clicked.connect(self.quit_app)
 
         self.show()
@@ -173,30 +171,37 @@ class MainWindow(QMainWindow):
         confirm_buttons.accepted.connect(student_data_dialog.accept)
         dialog_layout.addWidget(confirm_buttons)
 
+        student_data_dialog.exec_()
+
+    def delete_student_data(self, complete_name):
+        print("[Gui] Attemping deleting confirmation of " + complete_name)
+        print("does nothing lol")
+        pass
+
     def start_add_menu(self):
         print("[Gui] Starting add menu.")
-        add_menu = Widgets.AddWidget()
+        self.add_menu = Widgets.AddWidget()
 
         self.setWindowTitle("AquaDB System - Agregar nuevo alumno")
         self.setFixedSize(800, 600)
 
-        self.setCentralWidget(add_menu)
+        self.setCentralWidget(self.add_menu)
 
         # component actions
-        add_menu.photo_select_button.clicked.connect(self.select_student_photo)
-        add_menu.photo_see_button.clicked.connect(self.show_student_photo)
-        add_menu.birthday_calendar.selectionChanged.connect(
-            lambda: add_menu.birthday_ind_label.setText(
-                add_menu.birthday_calendar.selectedDate().toString()
+        self.add_menu.photo_select_button.clicked.connect(self.select_student_photo)
+        self.add_menu.photo_see_button.clicked.connect(self.show_student_photo)
+        self.add_menu.birthday_calendar.selectionChanged.connect(
+            lambda: self.add_menu.birthday_ind_label.setText(
+                self.add_menu.birthday_calendar.selectedDate().toString()
             )
         )
-        add_menu.start_date_calendar.selectionChanged.connect(
-            lambda: add_menu.start_date_ind_label.setText(
-                add_menu.start_date_calendar.selectedDate().toString()
+        self.add_menu.start_date_calendar.selectionChanged.connect(
+            lambda: self.add_menu.start_date_ind_label.setText(
+                self.add_menu.start_date_calendar.selectedDate().toString()
             )
         )
-        add_menu.accept_button.clicked.connect(self.validate_student)
-        add_menu.back_button.clicked.connect(self.start_list_menu)
+        self.add_menu.accept_button.clicked.connect(self.validate_student)
+        self.add_menu.back_button.clicked.connect(self.start_list_menu)
 
     def select_student_photo(self):
         print("[Gui] Selecting new student photo.")
