@@ -15,16 +15,10 @@ class MainWindow(QWidget):
         palette.setBrush(10, QBrush(sImage))                     # 10 = Windowrole
         self.setPalette(palette)
 
-        self.label = QLabel('Test', self)                        # test, if it's really backgroundimage
-        self.label.setGeometry(50,50,200,50)
-        self.button = QPushButton("HIIII", self)
-
         self.show()
 
 
-
 if __name__ == "__main__":
-
     app = QApplication(sys.argv)
     oMainwindow = MainWindow()
     sys.exit(app.exec_())

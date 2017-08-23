@@ -8,9 +8,6 @@ class ListWidget(QWidget):
     def __init__(self, parent=None):
         super(ListWidget, self).__init__(parent)
 
-        self.setWindowTitle("AquaDB System - Lista de alumnos")
-        self.setFixedSize(self.size())
-
         # initialize database
         db = Database.DatabaseController()
 
@@ -20,13 +17,6 @@ class ListWidget(QWidget):
         # sub-layouts
         search_and_add_layout = QHBoxLayout()
         list_layout.addLayout(search_and_add_layout)
-
-        # background
-        oImage = QImage("background.png")
-        sImage = oImage.scaled(QSize(300, 200))  # resize Image to widgets size
-        palette = QPalette()
-        palette.setBrush(10, QBrush(sImage))  # 10 = Windowrole
-        self.setPalette(palette)
 
         # components
         self.search_edit = QLineEdit()
@@ -39,17 +29,33 @@ class ListWidget(QWidget):
         # scroll area thing
         scroll_area = QScrollArea()
         scroll_area_widget = QWidget()
-        scroll_area.setWidget(scroll_area_widget)
         self.scroll_area_layout = QVBoxLayout()
 
-        scroll_area_widget.setLayout(self.scroll_area_layout)
-
-        self.name_list = db.get_students_name_list()
         self.see_button_list = []
         self.delete_button_list = []
 
-        self.list_list_layout = QHBoxLayout()
-        self.update_list()
+        # first time list
+        self.name_list = db.get_students_name_list()
+        if len(self.name_list) is not 0:
+            for i in range(0, len(self.name_list)):
+                temp_layout = QHBoxLayout()
+                temp_layout.addWidget(QLabel(self.name_list[i]), 0)
+
+                see_button = QPushButton("Ver alumno")
+                self.see_button_list.append(see_button)
+                temp_layout.addWidget(see_button, 1)
+
+                delete_button = QPushButton("Eliminar alumno")
+                self.delete_button_list.append(delete_button)
+                temp_layout.addWidget(delete_button, 2)
+
+                self.scroll_area_layout.addLayout(temp_layout)
+        print(self.see_button_list)
+        print(self.delete_button_list)
+
+        scroll_area_widget.setLayout(self.scroll_area_layout)
+        scroll_area.setWidget(scroll_area_widget)
+        list_layout.addWidget(scroll_area)
 
         list_layout.addWidget(self.quit_button)
 
@@ -78,9 +84,6 @@ class AddWidget(QWidget):
 
     def __init__(self, parent=None):
         super(AddWidget, self).__init__(parent)
-
-        self.setWindowTitle("AquaDB System - Agregar nuevo alumno")
-        self.setFixedSize(self.size())
 
         # main layout
         add_layout = QVBoxLayout()

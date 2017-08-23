@@ -12,9 +12,6 @@ class MainWindow(QMainWindow):
         print("[Gui] Initializing gui.")
         super(MainWindow, self).__init__(parent)
 
-        self.title = "Title"
-        self.setWindowTitle(self.title)
-
         # initialize database
         self.db = Database.DatabaseController()
 
@@ -25,18 +22,19 @@ class MainWindow(QMainWindow):
         print("[Gui] Starting list menu.")
         list_menu = Widgets.ListWidget()
 
-        self.title = "AquaDB System - Lista de alumnos"
+        self.setWindowTitle("AquaDB System - Lista de alumnos")
+        self.setFixedSize(400, 200)
 
         list_menu.update_list()
 
         self.setCentralWidget(list_menu)
 
-        list_menu.setFixedSize(300, 200)
-
         # component actions
         list_menu.search_edit.textChanged.connect(list_menu.update_list)
         list_menu.add_button.clicked.connect(self.start_add_menu)
 
+        print("nombres: " + str(len(list_menu.name_list)) + ". botones de agregar:" + str(len(list_menu.see_button_list)) +
+              ". botones de eliminar:" + str(len(list_menu.delete_button_list)))
         for i in range(0, len(list_menu.see_button_list)):
             list_menu.see_button_list[i].clicked.connect(
                 lambda: self.show_student_data(str(list_menu.name_list[i])))
@@ -177,25 +175,28 @@ class MainWindow(QMainWindow):
 
     def start_add_menu(self):
         print("[Gui] Starting add menu.")
-        self.add_menu = Widgets.AddWidget()
+        add_menu = Widgets.AddWidget()
 
-        self.setCentralWidget(self.add_menu)
+        self.setWindowTitle("AquaDB System - Agregar nuevo alumno")
+        self.setFixedSize(800, 600)
+
+        self.setCentralWidget(add_menu)
 
         # component actions
-        self.add_menu.photo_select_button.clicked.connect(self.select_student_photo)
-        self.add_menu.photo_see_button.clicked.connect(self.show_student_photo)
-        self.add_menu.birthday_calendar.selectionChanged.connect(
-            lambda: self.add_menu.birthday_ind_label.setText(
-                self.add_menu.birthday_calendar.selectedDate().toString()
+        add_menu.photo_select_button.clicked.connect(self.select_student_photo)
+        add_menu.photo_see_button.clicked.connect(self.show_student_photo)
+        add_menu.birthday_calendar.selectionChanged.connect(
+            lambda: add_menu.birthday_ind_label.setText(
+                add_menu.birthday_calendar.selectedDate().toString()
             )
         )
-        self.add_menu.start_date_calendar.selectionChanged.connect(
-            lambda: self.add_menu.start_date_ind_label.setText(
-                self.add_menu.start_date_calendar.selectedDate().toString()
+        add_menu.start_date_calendar.selectionChanged.connect(
+            lambda: add_menu.start_date_ind_label.setText(
+                add_menu.start_date_calendar.selectedDate().toString()
             )
         )
-        self.add_menu.accept_button.clicked.connect(self.validate_student)
-        self.add_menu.back_button.clicked.connect(self.start_list_menu)
+        add_menu.accept_button.clicked.connect(self.validate_student)
+        add_menu.back_button.clicked.connect(self.start_list_menu)
 
     def select_student_photo(self):
         print("[Gui] Selecting new student photo.")
@@ -263,21 +264,17 @@ class MainWindow(QMainWindow):
 
         self.db.insert_new_student(new_student_data)
 
-        confirmation_bootable = self.add_another()
-        if confirmation_bootable:
-            self.clear_inputs()
-        elif confirmation_bootable:
-            self.clear_inputs()
-            self.list_menu
+        self.add_another()
 
     def add_another(self):
         choice = QMessageBox.question(self, 'Confirmar',
                                       "Quiere agregar otro alumno?",
                                       QMessageBox.Yes | QMessageBox.No)
         if choice == QMessageBox.Yes:
-            return True
+            self.clear_inputs()
         elif choice == QMessageBox.No:
-            return False
+            self.clear_inputs()
+            self.start_list_menu()
 
     def clear_inputs(self):
         self.add_menu.complete_name_edit.clear()
