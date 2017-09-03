@@ -1,4 +1,5 @@
 from PyQt4.QtGui import *
+import fpdf
 from PyQt4.QtCore import QSize
 from betaversion2 import Database
 
@@ -8,10 +9,10 @@ class ListWidget(QWidget):
     def __init__(self, parent=None):
         super(ListWidget, self).__init__(parent)
 
-        # initialize database
-        db = Database.DatabaseController()
+        # initialize database controller
+        self.db = Database.DatabaseController()
 
-        # main layout
+        # main window layout
         list_layout = QVBoxLayout()
 
         # sub-layouts
@@ -35,13 +36,17 @@ class ListWidget(QWidget):
         self.delete_button_list = []
 
         # first time list
-        self.name_list = db.get_students_name_list()
-        if len(self.name_list) is not 0:
-            for i in range(0, len(self.name_list)):
+        self.id_list = self.db.get_students_id_list()
+        print("[Widgets] Creating list for first time.")
+        print("\tList widget: id_list is: " + str(self.id_list) + ".")
+        if len(self.id_list) is not 0:
+            for i in range(0, len(self.id_list)):
                 temp_layout = QHBoxLayout()
-                temp_layout.addWidget(QLabel(self.name_list[i]), 0)
 
-                see_button = QPushButton("Ver alumno")
+                temp_layout.addWidget(QLabel(str(self.id_list[i])))
+                temp_layout.addWidget(QLabel(self.db.get_name_or_surname(self.id_list[i], 2)))
+
+                see_button = QPushButton("Generar archivo PDF")
                 self.see_button_list.append(see_button)
                 temp_layout.addWidget(see_button, 1)
 
@@ -50,8 +55,6 @@ class ListWidget(QWidget):
                 temp_layout.addWidget(delete_button, 2)
 
                 self.scroll_area_layout.addLayout(temp_layout)
-        print(self.see_button_list)
-        print(self.delete_button_list)
 
         scroll_area_widget.setLayout(self.scroll_area_layout)
         scroll_area.setWidget(scroll_area_widget)
@@ -62,14 +65,15 @@ class ListWidget(QWidget):
         self.setLayout(list_layout)
 
     def update_list(self):
-        print("[Layout] Updating list.")
-        for i in range(0, len(self.name_list)):
-            print(str(self.name_list) + "name list")
-            print("now adding to list: " + self.name_list[i])
+        print("[Layout] Updating list (method).")
+        for i in range(0, len(self.id_list)):
+            print("\tCreating row of list with ID: " + str(self.id_list[i]) + ".")
             temp_layout = QHBoxLayout()
-            temp_layout.addWidget(QLabel(self.name_list[i]), 0)
 
-            see_button = QPushButton("Ver alumno")
+            temp_layout.addWidget(QLabel(str(self.id_list[i])))
+            temp_layout.addWidget(QLabel(self.db.get_name_or_surname(self.id_list[i], 2)))
+
+            see_button = QPushButton("Generar archivo PDF")
             self.see_button_list.append(see_button)
             temp_layout.addWidget(see_button, 1)
 
@@ -78,6 +82,8 @@ class ListWidget(QWidget):
             temp_layout.addWidget(delete_button, 2)
 
             self.list_list_layout = temp_layout
+
+            self.QtGui.QApplication.processEvents()
 
 
 class AddWidget(QWidget):
@@ -89,7 +95,7 @@ class AddWidget(QWidget):
         add_layout = QVBoxLayout()
 
         # sub-layouts
-        name_and_photo_layout = QHBoxLayout()
+        name_surname_and_photo_layout = QHBoxLayout()
         calendars_layout = QHBoxLayout()
         calendar_1_layout = QVBoxLayout()
         calendar_2_layout = QVBoxLayout()
@@ -102,8 +108,10 @@ class AddWidget(QWidget):
         buttons_layout = QHBoxLayout()
 
         # components
-        complete_name_label = QLabel("Nombre completo:")
-        self.complete_name_edit = QLineEdit()
+        name_label = QLabel("Nombre:")
+        self.name_edit = QLineEdit()
+        surname_label = QLabel("Apellido:")
+        self.surname_edit = QLineEdit()
         photo_label = QLabel("Foto:")
         self.photo_select_button = QPushButton("Seleccionar foto")
         self.photo_see_button = QPushButton("Ver foto")
@@ -145,11 +153,13 @@ class AddWidget(QWidget):
         self.back_button = QPushButton("Volver")
 
         # adding to sub-layout
-        name_and_photo_layout.addWidget(complete_name_label)
-        name_and_photo_layout.addWidget(self.complete_name_edit)
-        name_and_photo_layout.addWidget(photo_label)
-        name_and_photo_layout.addWidget(self.photo_select_button)
-        name_and_photo_layout.addWidget(self.photo_see_button)
+        name_surname_and_photo_layout.addWidget(name_label)
+        name_surname_and_photo_layout.addWidget(self.name_edit)
+        name_surname_and_photo_layout.addWidget(surname_label)
+        name_surname_and_photo_layout.addWidget(self.surname_edit)
+        name_surname_and_photo_layout.addWidget(photo_label)
+        name_surname_and_photo_layout.addWidget(self.photo_select_button)
+        name_surname_and_photo_layout.addWidget(self.photo_see_button)
         calendars_layout.addLayout(calendar_1_layout)
         calendars_layout.addLayout(calendar_2_layout)
 
@@ -193,7 +203,7 @@ class AddWidget(QWidget):
         buttons_layout.addWidget(self.back_button)
 
         # add to main layout
-        add_layout.addLayout(name_and_photo_layout)
+        add_layout.addLayout(name_surname_and_photo_layout)
         add_layout.addLayout(calendars_layout)
         add_layout.addLayout(phone_and_address_layout)
         add_layout.addLayout(dni_and_email_layout)
@@ -204,3 +214,14 @@ class AddWidget(QWidget):
         add_layout.addLayout(buttons_layout)
 
         self.setLayout(add_layout)
+
+
+class StudenPDF(fpdf.FPDF):
+
+    def __init__(self, complete_name, db):
+        student_pdf = fpdf.FPDF()
+
+    def header(self):
+        # image("path", posX, posY, width, height)
+        self.image("acqua_logo", 0, 0)
+        self.set_font("Calibri")
