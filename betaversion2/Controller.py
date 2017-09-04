@@ -1,9 +1,12 @@
+on_ubuntu = False
+
 import sys
 import os
+if os.name is not 'nt':
+    import subprocess
+    on_ubuntu = True
 import shutil
-import random
 import betaversion2.pdfMaker
-from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 
@@ -34,7 +37,6 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(list_menu)
 
         # component actions
-        # list_menu.search_edit.textChanged.connect(self.start_list_menu())
         list_menu.add_button.clicked.connect(self.start_add_menu)
 
         print("nombres: " + str(len(list_menu.id_list)) + ". botones de agregar:" + str(len(list_menu.see_button_list)) +
@@ -48,16 +50,26 @@ class MainWindow(QMainWindow):
                 lambda: self.delete_student_data(list_menu.id_list[i]))
         list_menu.quit_button.clicked.connect(self.quit_app)
 
+        # list_menu.search_edit.textChanged.connect(self.start_list_menu)
+
         self.show()
 
     def show_student_data(self, aidi):
         print("[Controller] Generate button clicked, now generating PDF with ID: " + str(aidi))
         student_data = self.db.get_a_student_data(aidi)
         betaversion2.pdfMaker.PDF(student_data)
-        os.startfile(".\\resources\\pdf_output\\" + str(student_data[0]) + ".pdf")
+        if on_ubuntu is True:
+            try:
+                os.startfile(".\\resources\\pdf_output\\" + str(student_data[0]) + ".pdf")
+            except AttributeError:
+                pass
+        elif on_ubuntu is False:
+            opener = "open" if sys.platform == "darwin" else "xdg-open"
+            subprocess.call([opener, ".\\resources\\pdf_output\\" + str(student_data[0]) + ".pdf"])
+        return 1
 
     def delete_student_data(self, aidi):
-        print("[Controller] Attemping deleting confirmation of " + str(aidi))
+        print("[Controller] Attempting deleting confirmation of " + str(aidi))
 
         choice = QMessageBox.question(self, 'Confirmar',
                                       "Realmente quiere eliminar este alumno?",
@@ -100,13 +112,13 @@ class MainWindow(QMainWindow):
         # should copy file and paste it on the student photo folder,
         # and then change path (when validate)
         old_path = QFileDialog.getOpenFileName(
-            self, 'Selecciona la foto del alumno', 'c:\\', "Image files (*.jpg *.png)")
+            self, 'Selecciona la foto del alumno', 'c:/', "Image files (*.jpg *.png)")
 
         # 1/9999999 possibilities that same photo name is made...
-        self.add_menu.photo_path = ".\\resources\\photos\\" + str(self.db.get_last_id_number()) + old_path[-4:]
+        self.add_menu.photo_path = "./resources/photos/" + str(self.db.get_last_id_number()) + old_path[-4:]
 
         shutil.copy(old_path, self.add_menu.photo_path)
-        print("[Controller] Photo copied")
+        print("[Controller] Photo copied on: " + self.add_menu.photo_path)
 
     def show_student_photo(self):
         print("[Controller] Showing student photo.")

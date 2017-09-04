@@ -74,7 +74,7 @@ class PDF:
         self.pdf.write(10, observation_string)
 
         # image(path, posx, posy, width, height, filetype, link)
-        if student_data[3] is not "":
-            self.pdf.image(student_data[3], 120, 30, 80, 80, "JPG")
+        if student_data[5] is not "":
+            self.pdf.image(student_data[5], 120, 30, 80, 80, "JPG")
 
         self.pdf.output("./resources/pdf_output/" + str(student_data[0]) + ".pdf", "f")
