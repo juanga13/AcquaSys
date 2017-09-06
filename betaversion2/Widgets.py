@@ -1,6 +1,12 @@
+on_ubuntu = False
+
 from PyQt4.QtGui import *
-import fpdf
-from PyQt4.QtCore import QSize
+import sys
+import os
+if os.name is not 'nt':
+    import subprocess
+    on_ubuntu = True
+import betaversion2.pdfMaker
 from betaversion2 import Database
 
 
@@ -22,7 +28,8 @@ class ListWidget(QWidget):
         # components
         self.search_edit = QLineEdit()
         search_and_add_layout.addWidget(self.search_edit)
-        self.search_button = QPushButton()
+        self.search_button = QPushButton("SEARCH")
+        search_and_add_layout.addWidget(self.search_button)
         self.add_button = QPushButton("Agregar nuevo alumno")
         search_and_add_layout.addWidget(self.add_button)
         self.quit_button = QPushButton("Salir")
@@ -32,7 +39,7 @@ class ListWidget(QWidget):
         scroll_area_widget = QWidget()
         self.scroll_area_layout = QVBoxLayout()
 
-        self.see_button_list = []
+        self.generate_pdf_button_list = []
         self.delete_button_list = []
 
         # first time list
@@ -46,11 +53,11 @@ class ListWidget(QWidget):
                 temp_layout.addWidget(QLabel(str(self.id_list[i])))
                 temp_layout.addWidget(QLabel(self.db.get_name_or_surname(self.id_list[i], 2)))
 
-                see_button = QPushButton("Generar archivo PDF")
-                self.see_button_list.append(see_button)
+                see_button = IdButton("Generar archivo PDF", self.id_list[i])
+                self.generate_pdf_button_list.append(see_button)
                 temp_layout.addWidget(see_button, 1)
 
-                delete_button = QPushButton("Eliminar alumno")
+                delete_button = IdButton("Eliminar alumno", self.id_list[i])
                 self.delete_button_list.append(delete_button)
                 temp_layout.addWidget(delete_button, 2)
 
@@ -64,26 +71,39 @@ class ListWidget(QWidget):
 
         self.setLayout(list_layout)
 
-    def update_list(self):
+    def update_list(self, name_surname_filter):
+        # needs improvement
         print("[Layout] Updating list (method).")
         for i in range(0, len(self.id_list)):
-            print("\tCreating row of list with ID: " + str(self.id_list[i]) + ".")
-            temp_layout = QHBoxLayout()
+            if name_surname_filter in self.db.get_name_or_surname(self.id_list[i], 2):
+                print("\tCreating row of list with ID: " + str(self.id_list[i]) + ".")
+                temp_layout = QHBoxLayout()
 
-            temp_layout.addWidget(QLabel(str(self.id_list[i])))
-            temp_layout.addWidget(QLabel(self.db.get_name_or_surname(self.id_list[i], 2)))
+                temp_layout.addWidget(QLabel(str(self.id_list[i])))
+                temp_layout.addWidget(QLabel(self.db.get_name_or_surname(self.id_list[i], 2)))
 
-            see_button = QPushButton("Generar archivo PDF")
-            self.see_button_list.append(see_button)
-            temp_layout.addWidget(see_button, 1)
+                see_button = IdButton("Generar archivo PDF", self.id_list[i])
+                self.generate_pdf_button_list.append(see_button)
+                temp_layout.addWidget(see_button, 1)
 
-            delete_button = QPushButton("Eliminar alumno")
-            self.delete_button_list.append(delete_button)
-            temp_layout.addWidget(delete_button, 2)
+                # edit_button = QPushButton("Editar alumno", self.id_list[i])
+                # self.edit_button_list.append(edit_button)
+                # temp_layout.addWidget(edit_button, 2)
 
-            self.list_list_layout = temp_layout
+                delete_button = IdButton("Eliminar alumno", self.id_list[i])
+                self.delete_button_list.append(delete_button)
+                temp_layout.addWidget(delete_button, 2)
 
-            self.QtGui.QApplication.processEvents()
+                self.list_list_layout = temp_layout
+
+                self.QtGui.QApplication.processEvents()
+
+
+class IdButton(QPushButton):
+
+    def __init__(self, string, an_id):
+        self.an_id = an_id
+        super(IdButton, self).__init__(string)
 
 
 class AddWidget(QWidget):
@@ -214,12 +234,6 @@ class AddWidget(QWidget):
         add_layout.addLayout(buttons_layout)
 
         self.setLayout(add_layout)
-
-
-class StudenPDF(fpdf.FPDF):
-
-    def __init__(self, complete_name, db):
-        student_pdf = fpdf.FPDF()
 
     def header(self):
         # image("path", posX, posY, width, height)

@@ -8,6 +8,7 @@ if os.name is not 'nt':
 import shutil
 import betaversion2.pdfMaker
 from PyQt4.QtGui import *
+from PyQt4 import QtCore
 
 
 from betaversion2 import Widgets, Database
@@ -29,32 +30,44 @@ class MainWindow(QMainWindow):
 
     def start_list_menu(self):
         print("[Gui] Starting list menu.")
-        list_menu = Widgets.ListWidget()
+        self.list_menu = Widgets.ListWidget()
 
         self.setWindowTitle("AquaDB System - Lista de alumnos")
         self.setFixedSize(400, 400)
 
-        self.setCentralWidget(list_menu)
+        self.setCentralWidget(self.list_menu)
 
         # component actions
-        list_menu.add_button.clicked.connect(self.start_add_menu)
+        self.list_menu.add_button.clicked.connect(self.start_add_menu)
 
-        print("nombres: " + str(len(list_menu.id_list)) + ". botones de agregar:" + str(len(list_menu.see_button_list)) +
-              ". botones de eliminar:" + str(len(list_menu.delete_button_list)))
-        for i in range(0, len(list_menu.see_button_list)):
-            print(list_menu.id_list[i])
-            list_menu.see_button_list[i].clicked.connect(
-                lambda: self.show_student_data(list_menu.id_list[i]))
-        for i in range(0, len(list_menu.delete_button_list)):
-            list_menu.delete_button_list[i].clicked.connect(
-                lambda: self.delete_student_data(list_menu.id_list[i]))
-        list_menu.quit_button.clicked.connect(self.quit_app)
+        print("nombres: " + str(len(self.list_menu.id_list)) + ". botones de agregar:" + str(len(self.list_menu.generate_pdf_button_list)) +
+              ". botones de eliminar:" + str(len(self.list_menu.delete_button_list)))
 
+        print("id_label_list: " + str(self.list_menu.id_list))
+
+        print("[Controller] Iterating buttons to add event)")
+        for i in range(0, len(self.list_menu.generate_pdf_button_list)):
+            print("\tNow in: " + str(self.list_menu.id_list[i]))
+            button = self.list_menu.generate_pdf_button_list[i]
+            x=i
+            print("CONTROLLER-button: " + str(button.an_id))
+            button.clicked.connect(lambda: self.show_student_data(x))
+        for i in range(0, len(self.list_menu.delete_button_list)):
+            button = self.list_menu.delete_button_list[i]
+            button.clicked.connect(lambda: self.delete_student_data(button))
+
+            self.list_menu.quit_button.clicked.connect(self.quit_app)
+
+        self.list_menu.search_button.clicked.connect(
+            lambda: self.list_menu.update_list(self.list_menu.search_edit.text))
         # list_menu.search_edit.textChanged.connect(self.start_list_menu)
 
         self.show()
 
     def show_student_data(self, aidi):
+
+        # print("SHOWSTUDENT-button: " + str(button))
+        # aidi = button.an_id
         print("[Controller] Generate button clicked, now generating PDF with ID: " + str(aidi))
         student_data = self.db.get_a_student_data(aidi)
         betaversion2.pdfMaker.PDF(student_data)
@@ -68,7 +81,9 @@ class MainWindow(QMainWindow):
             subprocess.call([opener, ".\\resources\\pdf_output\\" + str(student_data[0]) + ".pdf"])
         return 1
 
-    def delete_student_data(self, aidi):
+    def delete_student_data(self, button):
+        print(button.an_id)
+        aidi = button.an_id
         print("[Controller] Attempting deleting confirmation of " + str(aidi))
 
         choice = QMessageBox.question(self, 'Confirmar',
