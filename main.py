@@ -1,6 +1,6 @@
-from betaversion2.Controller import *
 import sys
 
+from Controller import *
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

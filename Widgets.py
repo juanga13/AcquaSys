@@ -1,11 +1,13 @@
 from PyQt4.QtGui import *
-from betaversion2 import Database
+from PyQt4.QtCore import QSize
+
+import Database
 
 
 class ListWidget(QWidget):
 
-    def __init__(self, parent=None, student_data=None):
-        super(ListWidget, self).__init__(parent, student_data)
+    def __init__(self, parent=None):
+        super(ListWidget, self).__init__(parent)
 
         # initialize database controller
         self.db = Database.DatabaseController()
@@ -29,39 +31,27 @@ class ListWidget(QWidget):
         # scroll area thing
         scroll_area = QScrollArea()
         scroll_area_widget = QWidget()
+
+        # scroll area background
+        background_image = QImage("./resources/fill.jpg")
+        background_image = background_image.scaled(QSize(self.size()))  # resize Image to widgets size
+        palette = QPalette()
+        palette.setBrush(10, QBrush(background_image))
+        self.setPalette(palette)
+
         self.scroll_area_layout = QVBoxLayout()
 
+        # button list
+        self.edit_button_list = []
         self.generate_pdf_button_list = []
         self.delete_button_list = []
-        self.edit_button_list = []
 
         self.id_list = self.db.get_students_id_list()
 
+        # log updating list
         print("[Widgets] Creating list for first time.")
         print("\tList widget: id_list is: " + str(self.id_list) + ".")
-
-        # first time list and adds buttons to list
-        if len(self.id_list) is not 0:
-            for i in range(0, len(self.id_list)):
-                temp_layout = QHBoxLayout()
-
-                temp_layout.addWidget(QLabel(str(self.id_list[i])))
-                self.id_label_list.append(self.id_list[i])
-                temp_layout.addWidget(QLabel(self.db.get_name_or_surname(self.id_list[i], 2)))
-
-                edit_button = IdButton("Editar alumno", self.id_list[i])
-                self.edit_button_list.append(edit_button)
-                temp_layout.addWidget(edit_button)
-
-                see_button = IdButton("Generar archivo PDF", self.id_list[i])
-                self.generate_pdf_button_list.append(see_button)
-                temp_layout.addWidget(see_button)
-
-                delete_button = IdButton("Eliminar alumno", self.id_list[i])
-                self.delete_button_list.append(delete_button)
-                temp_layout.addWidget(delete_button)
-
-                self.scroll_area_layout.addLayout(temp_layout)
+        self.update_list()
 
         scroll_area_widget.setLayout(self.scroll_area_layout)
         scroll_area.setWidget(scroll_area_widget)
@@ -71,32 +61,46 @@ class ListWidget(QWidget):
 
         self.setLayout(list_layout)
 
-    def update_list(self, name_surname_filter):
+    def update_list(self, name_surname_filter=None):
         # needs improvement
+        if name_surname_filter is None:
+            name_surname_filter = ""
         print("[Layout] Updating list (method).")
         for i in range(0, len(self.id_list)):
-            if name_surname_filter in self.db.get_name_or_surname(self.id_list[i], 2):
+            if name_surname_filter is not "" and name_surname_filter in self.db.get_name_or_surname(self.id_list[i], 2):
                 print("\tCreating row of list with ID: " + str(self.id_list[i]) + ".")
+
+                # resets lists
+                self.edit_button_list = []
+                self.generate_pdf_button_list = []
+                self.delete_button_list = []
+
                 temp_layout = QHBoxLayout()
 
+                # id label
                 temp_layout.addWidget(QLabel(str(self.id_list[i])))
+
+                # complete name label
                 temp_layout.addWidget(QLabel(self.db.get_name_or_surname(self.id_list[i], 2)))
 
+                # edit student button
                 edit_button = IdButton("Editar alumno", self.id_list[i])
                 self.edit_button_list.append(edit_button)
                 temp_layout.addWidget(edit_button)
 
+                # generate pdf button
                 see_button = IdButton("Generar archivo PDF", self.id_list[i])
                 self.generate_pdf_button_list.append(see_button)
                 temp_layout.addWidget(see_button)
 
+                # delete button
                 delete_button = IdButton("Eliminar alumno", self.id_list[i])
                 self.delete_button_list.append(delete_button)
                 temp_layout.addWidget(delete_button)
 
                 self.list_list_layout = temp_layout
 
-                # list refresh call
+                # list refresh
                 self.QtGui.QApplication.processEvents()
 
 

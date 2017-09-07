@@ -1,18 +1,12 @@
-on_ubuntu = False
-
-import sys
 import os
-if os.name is not 'nt':
-    import subprocess
-    on_ubuntu = True
+import sys
 import shutil
-import betaversion2.pdfMaker
+import pdfMaker
 from PyQt4.QtGui import *
-from PyQt4 import QtCore
+from PyQt4.QtCore import QSize
 from functools import partial
-
-
-from betaversion2 import Widgets, Database
+import Widgets
+import Database
 
 
 class MainWindow(QMainWindow):
@@ -26,9 +20,13 @@ class MainWindow(QMainWindow):
         # initialize database
         self.db = Database.DatabaseController()
 
+        # variable
+        self.show_bool = False
+
         # start app method
         self.start_list_menu()
 
+    # main menu / list menu
     def start_list_menu(self):
         # log entered list_menu window
         print("[Gui] Starting list menu.")
@@ -39,6 +37,12 @@ class MainWindow(QMainWindow):
         # window specific settings
         self.setWindowTitle("AquaDB System - Lista de alumnos")
         self.setFixedSize(400, 400)
+
+        background_image = QImage("./resources/background.jpg")
+        background_image = background_image.scaled(QSize(self.size()))  # resize Image to widgets size
+        palette = QPalette()
+        palette.setBrush(10, QBrush(background_image))  # 10 = Windowrole
+        self.setPalette(palette)
 
         # show list_menu
         self.setCentralWidget(self.list_menu)
@@ -60,7 +64,7 @@ class MainWindow(QMainWindow):
         for i in range(0, len(self.list_menu.generate_pdf_button_list)):
             print("\tNow in: " + str(self.list_menu.id_list[i]))
             button_1 = self.list_menu.generate_pdf_button_list[i]
-            button_1.clicked.connect(partial(self.show_student_data, button_1))
+            button_1.clicked.connect(partial(self.generate_pdf, button_1))
             button_2 = self.list_menu.delete_button_list[i]
             button_2.clicked.connect(partial(self.delete_student_data, button_2))
             button_3 = self.list_menu.edit_button_list[i]
@@ -71,12 +75,12 @@ class MainWindow(QMainWindow):
 
         self.list_menu.search_button.clicked.connect(
             lambda: self.list_menu.update_list(self.list_menu.search_edit.text))
-        # list_menu.search_edit.textChanged.connect(self.start_list_menu)
 
         # show window (does not need to be called more than once)
-        self.show()
+        if self.show_bool is False:
+            self.show()
 
-    def show_student_data(self, button):
+    def generate_pdf(self, button):
         aidi = button.an_id
         # log entered to function
         print("[Controller] Generate button clicked, now generating PDF with ID: " + str(aidi))
@@ -85,17 +89,17 @@ class MainWindow(QMainWindow):
         student_data = self.db.get_a_student_data(aidi)
 
         # make the pdf
-        betaversion2.pdfMaker.PDF(student_data)
+        pdfMaker.PDF(student_data)
 
         # os-depending "open the pdf file"
-        if on_ubuntu is True:
-            try:
-                os.startfile("./resources/pdf_output/" + str(student_data[0]) + ".pdf")
-            except AttributeError:
-                pass
-        elif on_ubuntu is False:
-            opener = "open" if sys.platform == "darwin" else "xdg-open"
-            subprocess.call([opener, "./resources/pdf_output/" + str(student_data[0]) + ".pdf"])
+        # if on_ubuntu is True:
+        #     try:
+        os.startfile("./resources/pdf_output/" + str(student_data[0]) + ".pdf")
+        #     except AttributeError:
+        #         pass
+        # elif on_ubuntu is False:
+        #     opener = "open" if sys.platform == "darwin" else "xdg-open"
+        #     subprocess.call([opener, "./resources/pdf_output/" + str(student_data[0]) + ".pdf"])
 
     def delete_student_data(self, button):
         aidi = button.an_id
@@ -112,12 +116,13 @@ class MainWindow(QMainWindow):
             print("[Controller] Pressed yes: deleting studentm.")
 
             self.db.delete_a_student(aidi)
-            self.start_list_menu()
+            self.list_menu.update_list()
 
         elif choice == QMessageBox.No:
             # log delete rejected
             print("[Controller] Pressed no: deleting process cancelled.")
 
+    # add menu
     def start_add_menu(self):
         # log add_menu window
         print("[Controller] Starting add menu.")
@@ -128,6 +133,12 @@ class MainWindow(QMainWindow):
         # window specific settings
         self.setWindowTitle("AquaDB System - Agregar nuevo alumno")
         self.setFixedSize(800, 600)
+
+        background_image = QImage("./resources/background_2.jpg")
+        background_image = background_image.scaled(QSize(self.size()))  # resize Image to widgets size
+        palette = QPalette()
+        palette.setBrush(10, QBrush(background_image))  # 10 = Windowrole
+        self.setPalette(palette)
 
         # set widget on window
         self.setCentralWidget(self.add_menu)
@@ -156,7 +167,7 @@ class MainWindow(QMainWindow):
             self, 'Selecciona la foto del alumno', 'c:/', "Image files (*.jpg *.png)")
 
         # 1/9999999 possibilities that same photo name is made...
-        self.add_menu.photo_path = "./resources/photos/" + str(self.db.get_last_id_number()) + old_path[-4:]
+        self.add_menu.photo_path = "./output/photos/" + str(self.db.get_last_id_number()) + old_path[-4:]
 
         shutil.copy(old_path, self.add_menu.photo_path)
         print("[Controller] Photo copied on: " + self.add_menu.photo_path)
@@ -254,6 +265,7 @@ class MainWindow(QMainWindow):
         self.add_menu.mother_phone_edit.clear()
         self.add_menu.observation_edit.clear()
 
+    # edit menu
     def start_edit_menu(self, button):
         # takes the button given and makes an editable
         aidi = button.an_id
@@ -278,7 +290,7 @@ class MainWindow(QMainWindow):
         notes=new_student_data[16]
         """
 
-
+    # default behavior
     def quit_app(self):
         print("[Controller] Confirm exit")
         choice = QMessageBox.question(self, 'Confirmar',
