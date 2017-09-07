@@ -29,81 +29,105 @@ class MainWindow(QMainWindow):
         self.start_list_menu()
 
     def start_list_menu(self):
+        # log entered list_menu window
         print("[Gui] Starting list menu.")
+
+        # instance of widget with layout
         self.list_menu = Widgets.ListWidget()
 
+        # window specific settings
         self.setWindowTitle("AquaDB System - Lista de alumnos")
         self.setFixedSize(400, 400)
 
+        # show list_menu
         self.setCentralWidget(self.list_menu)
 
         # component actions
         self.list_menu.add_button.clicked.connect(self.start_add_menu)
 
-        print("nombres: " + str(len(self.list_menu.id_list)) + ". botones de agregar:" + str(len(self.list_menu.generate_pdf_button_list)) +
+        # log number of names and buttons in list
+        print("nombres: " + str(len(self.list_menu.id_list)) + ". botones de agregar:" +
+              str(len(self.list_menu.generate_pdf_button_list)) +
               ". botones de eliminar:" + str(len(self.list_menu.delete_button_list)))
-
+        # log all id's
         print("id_label_list: " + str(self.list_menu.id_list))
 
+        # log buttons actions
         print("[Controller] Iterating buttons to add event)")
+
+        # buttons actions
         for i in range(0, len(self.list_menu.generate_pdf_button_list)):
             print("\tNow in: " + str(self.list_menu.id_list[i]))
             button = self.list_menu.generate_pdf_button_list[i]
-            x=i
-            print("CONTROLLER-button: " + str(button.an_id))
-            button.clicked.connect(lambda: self.show_student_data(x))
+            button.clicked.connect(lambda: self.show_student_data(button))
         for i in range(0, len(self.list_menu.delete_button_list)):
             button = self.list_menu.delete_button_list[i]
             button.clicked.connect(lambda: self.delete_student_data(button))
 
-            self.list_menu.quit_button.clicked.connect(self.quit_app)
+        # more action
+        self.list_menu.quit_button.clicked.connect(self.quit_app)
 
         self.list_menu.search_button.clicked.connect(
             lambda: self.list_menu.update_list(self.list_menu.search_edit.text))
         # list_menu.search_edit.textChanged.connect(self.start_list_menu)
 
+        # show window (does not need to be called more than once)
         self.show()
 
-    def show_student_data(self, aidi):
-
-        # print("SHOWSTUDENT-button: " + str(button))
-        # aidi = button.an_id
+    def show_student_data(self, button):
+        aidi = button.an_id
+        # log entered to function
         print("[Controller] Generate button clicked, now generating PDF with ID: " + str(aidi))
+
+        # get student data list
         student_data = self.db.get_a_student_data(aidi)
+
+        # make the pdf
         betaversion2.pdfMaker.PDF(student_data)
+
+        # os-depending "open the pdf file"
         if on_ubuntu is True:
             try:
-                os.startfile(".\\resources\\pdf_output\\" + str(student_data[0]) + ".pdf")
+                os.startfile("./resources/pdf_output/" + str(student_data[0]) + ".pdf")
             except AttributeError:
                 pass
         elif on_ubuntu is False:
             opener = "open" if sys.platform == "darwin" else "xdg-open"
-            subprocess.call([opener, ".\\resources\\pdf_output\\" + str(student_data[0]) + ".pdf"])
-        return 1
+            subprocess.call([opener, "./resources/pdf_output/" + str(student_data[0]) + ".pdf"])
 
     def delete_student_data(self, button):
-        print(button.an_id)
         aidi = button.an_id
+
+        # log entered to function
         print("[Controller] Attempting deleting confirmation of " + str(aidi))
 
+        # confirmation window before delete
         choice = QMessageBox.question(self, 'Confirmar',
                                       "Realmente quiere eliminar este alumno?",
                                       QMessageBox.Yes | QMessageBox.No)
         if choice == QMessageBox.Yes:
+            # log delete accepted
             print("[Controller] Pressed yes: deleting studentm.")
+
             self.db.delete_a_student(aidi)
             self.start_list_menu()
+
         elif choice == QMessageBox.No:
+            # log delete rejected
             print("[Controller] Pressed no: deleting process cancelled.")
 
     def start_add_menu(self):
+        # log add_menu window
         print("[Controller] Starting add menu.")
 
+        # initialize add_menu widget with layout
+        self.add_menu = Widgets.AddWidget()
+
+        # window specific settings
         self.setWindowTitle("AquaDB System - Agregar nuevo alumno")
         self.setFixedSize(800, 600)
 
-        self.add_menu = Widgets.AddWidget()
-
+        # set widget on window
         self.setCentralWidget(self.add_menu)
 
         # component actions

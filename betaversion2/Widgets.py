@@ -1,12 +1,4 @@
-on_ubuntu = False
-
 from PyQt4.QtGui import *
-import sys
-import os
-if os.name is not 'nt':
-    import subprocess
-    on_ubuntu = True
-import betaversion2.pdfMaker
 from betaversion2 import Database
 
 
@@ -41,16 +33,19 @@ class ListWidget(QWidget):
 
         self.generate_pdf_button_list = []
         self.delete_button_list = []
+        self.id_label_list = []
 
-        # first time list
         self.id_list = self.db.get_students_id_list()
         print("[Widgets] Creating list for first time.")
         print("\tList widget: id_list is: " + str(self.id_list) + ".")
+
+        # first time list
         if len(self.id_list) is not 0:
             for i in range(0, len(self.id_list)):
                 temp_layout = QHBoxLayout()
 
                 temp_layout.addWidget(QLabel(str(self.id_list[i])))
+                self.id_label_list.append(self.id_list[i])
                 temp_layout.addWidget(QLabel(self.db.get_name_or_surname(self.id_list[i], 2)))
 
                 see_button = IdButton("Generar archivo PDF", self.id_list[i])
@@ -96,6 +91,7 @@ class ListWidget(QWidget):
 
                 self.list_list_layout = temp_layout
 
+                # list refresh call
                 self.QtGui.QApplication.processEvents()
 
 
@@ -234,8 +230,3 @@ class AddWidget(QWidget):
         add_layout.addLayout(buttons_layout)
 
         self.setLayout(add_layout)
-
-    def header(self):
-        # image("path", posX, posY, width, height)
-        self.image("acqua_logo", 0, 0)
-        self.set_font("Calibri")
