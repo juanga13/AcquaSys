@@ -4,8 +4,8 @@ from betaversion2 import Database
 
 class ListWidget(QWidget):
 
-    def __init__(self, parent=None):
-        super(ListWidget, self).__init__(parent)
+    def __init__(self, parent=None, student_data=None):
+        super(ListWidget, self).__init__(parent, student_data)
 
         # initialize database controller
         self.db = Database.DatabaseController()
@@ -33,13 +33,14 @@ class ListWidget(QWidget):
 
         self.generate_pdf_button_list = []
         self.delete_button_list = []
-        self.id_label_list = []
+        self.edit_button_list = []
 
         self.id_list = self.db.get_students_id_list()
+
         print("[Widgets] Creating list for first time.")
         print("\tList widget: id_list is: " + str(self.id_list) + ".")
 
-        # first time list
+        # first time list and adds buttons to list
         if len(self.id_list) is not 0:
             for i in range(0, len(self.id_list)):
                 temp_layout = QHBoxLayout()
@@ -48,13 +49,17 @@ class ListWidget(QWidget):
                 self.id_label_list.append(self.id_list[i])
                 temp_layout.addWidget(QLabel(self.db.get_name_or_surname(self.id_list[i], 2)))
 
+                edit_button = IdButton("Editar alumno", self.id_list[i])
+                self.edit_button_list.append(edit_button)
+                temp_layout.addWidget(edit_button)
+
                 see_button = IdButton("Generar archivo PDF", self.id_list[i])
                 self.generate_pdf_button_list.append(see_button)
-                temp_layout.addWidget(see_button, 1)
+                temp_layout.addWidget(see_button)
 
                 delete_button = IdButton("Eliminar alumno", self.id_list[i])
                 self.delete_button_list.append(delete_button)
-                temp_layout.addWidget(delete_button, 2)
+                temp_layout.addWidget(delete_button)
 
                 self.scroll_area_layout.addLayout(temp_layout)
 
@@ -77,17 +82,17 @@ class ListWidget(QWidget):
                 temp_layout.addWidget(QLabel(str(self.id_list[i])))
                 temp_layout.addWidget(QLabel(self.db.get_name_or_surname(self.id_list[i], 2)))
 
+                edit_button = IdButton("Editar alumno", self.id_list[i])
+                self.edit_button_list.append(edit_button)
+                temp_layout.addWidget(edit_button)
+
                 see_button = IdButton("Generar archivo PDF", self.id_list[i])
                 self.generate_pdf_button_list.append(see_button)
-                temp_layout.addWidget(see_button, 1)
-
-                # edit_button = QPushButton("Editar alumno", self.id_list[i])
-                # self.edit_button_list.append(edit_button)
-                # temp_layout.addWidget(edit_button, 2)
+                temp_layout.addWidget(see_button)
 
                 delete_button = IdButton("Eliminar alumno", self.id_list[i])
                 self.delete_button_list.append(delete_button)
-                temp_layout.addWidget(delete_button, 2)
+                temp_layout.addWidget(delete_button)
 
                 self.list_list_layout = temp_layout
 
@@ -142,27 +147,22 @@ class AddWidget(QWidget):
         self.email_edit = QLineEdit()
         phone_label = QLabel("Telefono:")
         self.phone_edit = QLineEdit()  # only int
-        self.phone_edit.setValidator(QIntValidator())
         dni_label = QLabel("DNI:")
         self.dni_edit = QLineEdit()  # only int
-        self.dni_edit.setValidator(QIntValidator())
         address_label = QLabel("Domicilio:")
         self.address_edit = QLineEdit()
         social_plan_label = QLabel("Obra social:")
         self.social_plan_edit = QLineEdit()
         affiliate_label = QLabel("Numero de afiliado:")
         self.affiliate_edit = QLineEdit()  # only int
-        self.affiliate_edit.setValidator(QIntValidator())
         complete_name_father_label = QLabel("Nombre completo (padre):")
         self.complete_name_father_edit = QLineEdit()
         father_phone_label = QLabel("Telefono (padre):")
         self.father_phone_edit = QLineEdit()  # only int
-        self.father_phone_edit.setValidator(QIntValidator())
         complete_name_mother_label = QLabel("Nombre completo (madre):")
         self.complete_name_mother_edit = QLineEdit()
         mother_phone_label = QLabel("Telefono (madre):")
         self.mother_phone_edit = QLineEdit()  # only int
-        self.mother_phone_edit.setValidator(QIntValidator())
         observation_label = QLabel("Observaciones:")
         self.observation_edit = QTextEdit()
         self.accept_button = QPushButton("Aceptar")

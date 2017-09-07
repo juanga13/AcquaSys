@@ -9,6 +9,7 @@ import shutil
 import betaversion2.pdfMaker
 from PyQt4.QtGui import *
 from PyQt4 import QtCore
+from functools import partial
 
 
 from betaversion2 import Widgets, Database
@@ -58,11 +59,12 @@ class MainWindow(QMainWindow):
         # buttons actions
         for i in range(0, len(self.list_menu.generate_pdf_button_list)):
             print("\tNow in: " + str(self.list_menu.id_list[i]))
-            button = self.list_menu.generate_pdf_button_list[i]
-            button.clicked.connect(lambda: self.show_student_data(button))
-        for i in range(0, len(self.list_menu.delete_button_list)):
-            button = self.list_menu.delete_button_list[i]
-            button.clicked.connect(lambda: self.delete_student_data(button))
+            button_1 = self.list_menu.generate_pdf_button_list[i]
+            button_1.clicked.connect(partial(self.show_student_data, button_1))
+            button_2 = self.list_menu.delete_button_list[i]
+            button_2.clicked.connect(partial(self.delete_student_data, button_2))
+            button_3 = self.list_menu.edit_button_list[i]
+            button_3.clicked.connect(partial(self.start_edit_menu, button_3))
 
         # more action
         self.list_menu.quit_button.clicked.connect(self.quit_app)
@@ -251,6 +253,31 @@ class MainWindow(QMainWindow):
         self.add_menu.complete_name_mother_edit.clear()
         self.add_menu.mother_phone_edit.clear()
         self.add_menu.observation_edit.clear()
+
+    def start_edit_menu(self, button):
+        # takes the button given and makes an editable
+        aidi = button.an_id
+        student_data = self.db.get_a_student_data(aidi)
+        """
+        id=new_student_data[0]
+        name=new_student_data[1]
+        surname=new_student_data[2]
+        birthday=new_student_data[3]
+        start_date=new_student_data[4]
+        photo_path=new_student_data[5]
+        dni=new_student_data[6]
+        address=new_student_data[7]
+        phone=new_student_data[8]
+        email=new_student_data[9]
+        social_plan=new_student_data[10]
+        affiliate_number=new_student_data[11]
+        father_name=new_student_data[12]
+        father_number=new_student_data[13]
+        mother_name=new_student_data[14]
+        mother_number=new_student_data[15]
+        notes=new_student_data[16]
+        """
+
 
     def quit_app(self):
         print("[Controller] Confirm exit")
