@@ -75,6 +75,6 @@ class PDF:
 
         # image(path, posx, posy, width, height, filetype, link)
         if student_data[5] is not "":
-            self.pdf.image(student_data[5], 120, 30, 80, 80, "JPG")
+            self.pdf.image(student_data[5], 120, 30, 80, 80, student_data[5][-3:])
 
-        self.pdf.output("./resources/pdf_output/" + str(student_data[0]) + ".pdf", "f")
+        self.pdf.output("./output/pdf_output/" + str(student_data[0]) + ".pdf", "f")

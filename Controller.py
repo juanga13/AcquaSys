@@ -55,26 +55,27 @@ class MainWindow(QMainWindow):
               str(len(self.list_menu.generate_pdf_button_list)) +
               ". botones de eliminar:" + str(len(self.list_menu.delete_button_list)))
         # log all id's
-        print("id_label_list: " + str(self.list_menu.id_list))
+        print("id_list: " + str(self.list_menu.id_list))
 
         # log buttons actions
         print("[Controller] Iterating buttons to add event)")
 
         # buttons actions
-        for i in range(0, len(self.list_menu.generate_pdf_button_list)):
+        for i in range(0, len(self.list_menu.id_list)):
             print("\tNow in: " + str(self.list_menu.id_list[i]))
-            button_1 = self.list_menu.generate_pdf_button_list[i]
-            button_1.clicked.connect(partial(self.generate_pdf, button_1))
-            button_2 = self.list_menu.delete_button_list[i]
-            button_2.clicked.connect(partial(self.delete_student_data, button_2))
-            button_3 = self.list_menu.edit_button_list[i]
-            button_3.clicked.connect(partial(self.start_edit_menu, button_3))
+            button = self.list_menu.generate_pdf_button_list[i]
+            button.clicked.connect(partial(self.generate_pdf, button))
+        for i in range(0, len(self.list_menu.id_list)):
+            button = self.list_menu.delete_button_list[i]
+            button.clicked.connect(partial(self.delete_student_data, button))
+        for i in range(0, len(self.list_menu.id_list)):
+            button = self.list_menu.edit_button_list[i]
+            button.clicked.connect(partial(self.start_edit_menu, button))
 
         # more action
         self.list_menu.quit_button.clicked.connect(self.quit_app)
 
-        self.list_menu.search_button.clicked.connect(
-            lambda: self.list_menu.update_list(self.list_menu.search_edit.text))
+        self.list_menu.search_button.clicked.connect(lambda: self.start_list_menu)
 
         # show window (does not need to be called more than once)
         if self.show_bool is False:
@@ -89,12 +90,13 @@ class MainWindow(QMainWindow):
         student_data = self.db.get_a_student_data(aidi)
 
         # make the pdf
-        pdfMaker.PDF(student_data)
+        if not os.path.exists(".\\output\\pdf_output\\" + str(student_data[0]) + ".pdf"):
+            pdfMaker.PDF(student_data)
 
         # os-depending "open the pdf file"
         # if on_ubuntu is True:
         #     try:
-        os.startfile("./resources/pdf_output/" + str(student_data[0]) + ".pdf")
+        os.startfile(".\\output\\pdf_output\\" + str(student_data[0]) + ".pdf")
         #     except AttributeError:
         #         pass
         # elif on_ubuntu is False:
@@ -113,10 +115,10 @@ class MainWindow(QMainWindow):
                                       QMessageBox.Yes | QMessageBox.No)
         if choice == QMessageBox.Yes:
             # log delete accepted
-            print("[Controller] Pressed yes: deleting studentm.")
+            print("[Controller] Pressed yes: deleting student.")
 
             self.db.delete_a_student(aidi)
-            self.list_menu.update_list()
+            self.start_list_menu()
 
         elif choice == QMessageBox.No:
             # log delete rejected
@@ -157,7 +159,7 @@ class MainWindow(QMainWindow):
             )
         )
         self.add_menu.accept_button.clicked.connect(self.validate_student)
-        self.add_menu.back_button.clicked.connect(self.start_list_menu)
+        self.add_menu.back_button.clicked.connect(lambda: self.start_list_menu)
 
     def select_student_photo(self):
         print("[Controller] Selecting new student photo.")
@@ -214,7 +216,7 @@ class MainWindow(QMainWindow):
         notes=new_student_data[16]
         """
         new_student_data = [
-            0,
+            self.db.get_last_id_number(),
             self.add_menu.name_edit.text(),
             self.add_menu.surname_edit.text(),
             self.add_menu.birthday_ind_label.text(),
