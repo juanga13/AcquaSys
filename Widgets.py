@@ -6,11 +6,16 @@ import Database
 
 class ListWidget(QWidget):
 
-    def __init__(self, parent=None):
-        super(ListWidget, self).__init__(parent)
+    def __init__(self, logger, search_filter=None, *args, **kwargs):
+        self.logger = logger
+        self.search_filter = search_filter
+        if search_filter is None:
+            self.search_filter = ''
+        super(ListWidget, self).__init__(*args, **kwargs)
 
         # initialize database controller
-        self.db = Database.DatabaseController()
+        self.db = Database.DatabaseController(self.logger)
+        self.list_list_size = 600
 
         # main window layout
         list_layout = QVBoxLayout()
@@ -33,11 +38,11 @@ class ListWidget(QWidget):
         scroll_area_widget = QWidget()
 
         # scroll area background
-        # background_image = QImage("./resources/fill.jpg")
-        # background_image = background_image.scaled(QSize(self.size()))  # resize Image to widgets size
-        # palette = QPalette()
-        # palette.setBrush(10, QBrush(background_image))
-        # self.setPalette(palette)
+        background_image = QImage("./resources/fill.jpg")
+        background_image = background_image.scaled(QSize(self.size()))  # resize Image to widgets size
+        palette = QPalette()
+        palette.setBrush(10, QBrush(background_image))
+        self.setPalette(palette)
 
         self.scroll_area_layout = QVBoxLayout()
 
@@ -46,11 +51,11 @@ class ListWidget(QWidget):
         self.generate_pdf_button_list = []
         self.delete_button_list = []
 
-        self.id_list = self.db.get_students_id_list()
+        self.id_list = self.db.get_students_id_list(self.search_filter)
 
         # log updating list
-        print("[Widgets] Creating list for first time.")
-        print("\tList widget: id_list is: " + str(self.id_list) + ".")
+        self.logger.log_into_file("[Widgets] Creating list for first time.")
+        self.logger.log_into_file("\tList widget: id_list is: " + str(self.id_list) + ".")
 
         if len(self.id_list) is not 0:
             for i in range(0, len(self.id_list)):
@@ -74,6 +79,7 @@ class ListWidget(QWidget):
                 self.scroll_area_layout.addLayout(temp_layout)
 
         scroll_area_widget.setLayout(self.scroll_area_layout)
+        self.list_list_size = scroll_area_widget.sizeHint().width()
         self.scroll_area.setWidget(scroll_area_widget)
         list_layout.addWidget(self.scroll_area)
 
@@ -86,7 +92,7 @@ class ListWidget(QWidget):
         # needs improvement
         if name_surname_filter is None:
             name_surname_filter = ""
-        print("[Widgets] Updating list (method).")
+            self.logger.log_into_file("[Widgets] Updating list (method).")
         self.id_list = self.db.get_students_id_list()
 
         # resets lists
@@ -99,7 +105,7 @@ class ListWidget(QWidget):
         for i in range(0, len(self.id_list)):
             complete_name = self.db.get_name_or_surname(self.id_list[i], 2)
             if name_surname_filter in complete_name:
-                print("\tCreating row of list with ID: " + str(self.id_list[i]) + ".")
+                self.logger.log_into_file("\tCreating row of list with ID: " + str(self.id_list[i]) + ".")
 
                 temp_layout = QHBoxLayout()
 
@@ -134,10 +140,14 @@ class IdButton(QPushButton):
         super(IdButton, self).__init__(string)
 
 
-class AddWidget(QWidget):
+class AddEditWidget(QWidget):
 
-    def __init__(self, parent=None):
-        super(AddWidget, self).__init__(parent)
+    def __init__(self, logger, *args, **kwargs):
+        self.logger = logger
+        super(AddEditWidget, self).__init__(*args, **kwargs)
+
+        # initialize
+        self.db = Database.DatabaseController(self.logger)
 
         # main layout
         add_layout = QVBoxLayout()
@@ -257,3 +267,41 @@ class AddWidget(QWidget):
         add_layout.addLayout(buttons_layout)
 
         self.setLayout(add_layout)
+
+    def change_values(self, aidi):
+        student_data = self.db.get_a_student_data(aidi)
+        """
+        id=new_student_data[0]
+        name=new_student_data[1]
+        surname=new_student_data[2]
+        birthday=new_student_data[3]
+        start_date=new_student_data[4]
+        photo_path=new_student_data[5]
+        dni=new_student_data[6]
+        address=new_student_data[7]
+        phone=new_student_data[8]
+        email=new_student_data[9]
+        social_plan=new_student_data[10]
+        affiliate_number=new_student_data[11]
+        father_name=new_student_data[12]
+        father_number=new_student_data[13]
+        mother_name=new_student_data[14]
+        mother_number=new_student_data[15]
+        notes=new_student_data[16]
+        """
+        self.name_edit.setText(student_data[1])
+        self.surname_edit.setText(student_data[2])
+        self.photo_path = student_data[5]
+        self.start_date_ind_label.setText(student_data[4])
+        self.birthday_ind_label.setText(student_data[3])
+        self.phone_edit.setText(student_data[8])
+        self.address_edit.setText(student_data[7])
+        self.dni_edit.setText(student_data[6])
+        self.email_edit.setText(student_data[9])
+        self.social_plan_edit.setText(student_data[10])
+        self.affiliate_edit.setText(student_data[11])
+        self.complete_name_father_edit.setText(student_data[12])
+        self.father_phone_edit.setText(student_data[13])
+        self.complete_name_mother_edit.setText(student_data[14])
+        self.mother_phone_edit.setText(student_data[15])
+        self.observation_edit.setText(student_data[16])
