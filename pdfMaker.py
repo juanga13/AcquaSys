@@ -61,7 +61,7 @@ class PDF:
         self.pdf.ln(line_space)
         self.pdf.cell(100, 6, "Tel.: " + str(student_data[15]), 1, 1, "L")
         self.pdf.ln(line_space)
-        for i in range(0, 12):
+        for i in range(12):
             self.pdf.set_x(20)
             self.pdf.cell(100, 6, "Fecha:___________________. Pago:___________________." + str(i), 0, 1, "L")
         self.pdf.ln(line_space)

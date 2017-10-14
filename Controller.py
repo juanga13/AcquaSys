@@ -82,8 +82,12 @@ class MainWindow(QMainWindow):
         # more action
         self.list_menu.quit_button.clicked.connect(self.quit_app)
 
-        self.list_menu.search_button.clicked.connect(
-            lambda: self.start_list_menu(self.list_menu.search_edit.text()))
+        search_edit_text = self.list_menu.search_edit.text()
+        if search_edit_text is not "":
+            self.list_menu.search_button.clicked.connect(
+                lambda: self.start_list_menu(self.list_menu.search_edit.text()))
+        else:
+            self.logger.log_into_file("Search button pressed with no data, doing nothing.")
 
         # show window (does not need to be called more than once)
         if self.show_bool is False:
